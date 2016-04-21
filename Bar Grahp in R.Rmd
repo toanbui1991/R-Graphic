@@ -1,0 +1,269 @@
+---
+title: "Chapter 3 Bar Graphics"
+author: "Toan"
+date: "2016¦~4¤ë16¤é"
+output: html_document
+---
+3.1 Making the Basic Bar Graphics.
+
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+pg_mean
+ggplot(pg_mean, aes(x = group, y = weight)) + geom_bar(stat = "identity")
+
+```
+
+
+```{r}
+# x as continuos and x as factor.
+BOD
+str(BOD)
+ggplot(BOD, aes(x = Time, y = demand)) + geom_bar(stat = "identity")
+ggplot(BOD, aes(x = factor(Time), y = demand)) + geom_bar(stat = "identity")
+```
+
+```{r}
+# change fill colour (fill) and outline (colour)
+ggplot(pg_mean, aes(x = group, y = weight))+ geom_bar(stat = "identity", fill = "lightblue", colour = "black")
+ 
+```
+3.2. Grouping Bars Together
+
+```{r}
+library(gcookbook) # For the data set
+cabbage_exp
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+ geom_bar(stat = "identity", position="dodge")
+```
+
+```{r}
+# Change the colour templete (scale_fill_brewer(palette="Pastel1"))
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+  geom_bar(stat = "identity", position="dodge", colour="black") +
+  scale_fill_brewer(palette="Pastel1")
+```
+
+3.3. Making a Bar Graph of Counts
+
+```{r}
+# Marking a graphing of count ( x only)
+head(diamonds)
+str(diamonds)
+ggplot(diamonds, aes(x = cut)) + geom_bar()
+```
+3.4. Using Colors in a Bar Graph
+
+```{r}
+library(gcookbook) # For the data set
+upc <- subset(uspopchange, rank(Change)>40)
+upc
+ggplot(upc, aes(x=Abb, y=Change, fill=Region)) + geom_bar(stat="identity")
+ggplot(upc, aes(x=reorder(Abb, Change), y=Change, fill=Region)) +
+geom_bar(stat="identity", colour="black") +
+scale_fill_manual(values=c("#669933", "#FFCC66")) +
+xlab("State")
+#Comment: Change the colour of the bar chart by using scale_fill_manual
+```
+3.5. Coloring Negative and Positive Bars Differently
+
+```{r}
+library(gcookbook) # For the data set
+csub <- subset(climate, Source=="Berkeley" & Year >= 1900)
+csub$pos <- csub$Anomaly10y >= 0
+csub
+ggplot(csub, aes(x=Year, y=Anomaly10y, fill=pos)) +
+geom_bar(stat="identity", position="identity", colour="black", size=0.25) +
+scale_fill_manual(values=c("#CCEEFF", "#FFDDDD"), guide=FALSE)
+#Comment: create one more variable pos( TRUE OR FAIL) and use fill the map the colour
+
+```
+3.6. Adjusting Bar Width and Spacing
+
+For grouped bar.
+
+```{r}
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+geom_bar(stat="identity", width=0.5, position="dodge")
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+geom_bar(stat="identity", width=0.5, position=position_dodge(0.7))
+#Comment: by default grouped bar displayed together, set postion_doge > width for seperatation.
+
+```
+3.7. Making a Stacked Bar Graph
+
+```{r}
+library(gcookbook) # For the data set
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+geom_bar(stat="identity")
+# Comment: we can make stacked bar instead of normal bar chart by
+#do not specify postion = dodge.
+```
+
+Change the lable to the correct position
+
+
+```{r}
+ggplot(cabbage_exp, aes(x=Date, y=Weight, fill=Cultivar)) +
+geom_bar(stat="identity", colour="black") +
+guides(fill=guide_legend(reverse=TRUE)) +
+scale_fill_brewer(palette="Pastel1")
+# Comment: there are two way to do that. one is specify
+#order in aes. two is guides(fill=guide_legend(reverse=TRUE))
+```
+3.8. Making a Proportional Stacked Bar Graph
+Need some data manipulation.
+```{r}
+library(gcookbook) # For the data set
+library(dplyr)
+ce <- cabbage_exp %>%
+  group_by(Date) %>% mutate(percent_weight = Weight/sum(Weight)*100) %>%
+  arrange(Date)
+ce
+ggplot(ce, aes(x=Date, y=percent_weight, fill=Cultivar)) +
+geom_bar(stat="identity")
+```
+
+We want to do some thing more.
+```{r}
+ggplot(ce, aes(x=Date, y=percent_weight, fill=Cultivar)) +
+geom_bar(stat="identity", colour="black") +
+guides(fill=guide_legend(reverse=TRUE)) +
+scale_fill_brewer(palette="Pastel1")
+# Comment: create outline wiht colour, change lable to correct position
+# with guides(fill=guide_legend(reverse=TRUE))
+# change default coour by scale_fill_brewer(palette="Pastel1")
+```
+
+3.9. Adding Labels to a Bar Graph
+
+```{r}
+# Below the top
+ggplot(cabbage_exp, aes(x=interaction(Date, Cultivar), y=Weight)) +
+geom_bar(stat="identity") +
+geom_text(aes(label=Weight), vjust=1.5, colour="white")
+```
+
+```{r}
+# Above the top
+ggplot(cabbage_exp, aes(x=interaction(Date, Cultivar), y=Weight)) +
+geom_bar(stat="identity") +
+geom_text(aes(label=Weight), vjust=-0.2)
+#Comment: 
+```
+
+Adjust y limit to be a little higher
+```{r}
+ggplot(cabbage_exp, aes(x=interaction(Date, Cultivar), y=Weight)) +
+geom_bar(stat="identity") +
+geom_text(aes(label=Weight), vjust=-0.2) +
+ylim(0, max(cabbage_exp$Weight) * 1.05)
+# Comment: we adjust y limit by using
+#ylim(0, max(cabbage_exp$Weight) * 1.05)
+```
+
+```{r}
+# Map y positions slightly above bar top - y range of plot will auto-adjust
+ggplot(cabbage_exp, aes(x=interaction(Date, Cultivar), y=Weight)) +
+geom_bar(stat="identity") +
+geom_text(aes(y=Weight+0.1, label=Weight))
+#Comment: by using geom_text(aes(y=Weight+0.1, label=Weight))
+```
+We want to put the number value in the middle of the bar chart
+and change to the proper label order.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(gcookbook) #for the data
+ce <- cabbage_exp %>% group_by(Date) %>%
+  mutate(label_y = cumsum(Weight) - 0.5*Weight)
+ce
+ggplot(ce, aes(x=Date, y=Weight, fill=Cultivar)) +
+geom_bar(stat="identity", colour="black") +
+  geom_text(aes(y=label_y, label=paste(format(Weight, nsmall=2), "kg")),
+size=4) +
+guides(fill=guide_legend(reverse=TRUE)) +
+scale_fill_brewer(palette="Pastel1")
+# Comment: We create one more varialbe label_y
+# to index the postion of label
+# and using geom_text to print text label.
+```
+
+3.10 Marking a Cleveland Dot Plot.
+We want to create normal Cleveland Dot Plot
+```{r}
+library(gcookbook) # For the data set
+tophit <- tophitters2001[1:25, ] # Take the top 25 from the tophitters data set
+ggplot(tophit, aes(x=avg, y=name)) + geom_point()
+```
+
+We want to reorder the y axis (name by the value in x)
+```{r}
+ggplot(tophit, aes(x=avg, y=reorder(name, avg))) +
+geom_point(size=3) + # Use a larger dot
+theme_bw() +
+theme(panel.grid.major.x = element_blank(),
+panel.grid.minor.x = element_blank(),
+panel.grid.major.y = element_line(colour="grey60", linetype="dashed"))
+# Comment: using the reorder() fucntion to reoder the name.
+```
+We want to rotate this chart let name in the x axis and avg in the y axis.
+```{r}
+ggplot(tophit, aes(x=reorder(name, avg), y=avg)) +
+geom_point(size=3) + # Use a larger dot
+theme_bw() +
+theme(axis.text.x = element_text(angle=60, hjust=1),
+panel.grid.major.y = element_blank(),
+panel.grid.minor.y = element_blank(),
+panel.grid.major.x = element_line(colour="grey60", linetype="dashed"))
+```
+We want to create a Cleveland Dot plot with divied
+by to group or factor of lg and also order by avg value.
+```{r}
+# Create nameorder to index for name in the data set.
+nameorder <- tophit$name[order(tophit$lg, tophit$avg)]
+#change the name column into factor and also reorder it by nameorder
+tophit$name <- factor(tophit$name, levels=nameorder)
+ggplot(tophit, aes(x=avg, y=name)) +
+geom_segment(aes(yend=name), xend=0, colour="grey50") +
+geom_point(size=3, aes(colour=lg)) +
+scale_colour_brewer(palette="Set1", limits=c("NL","AL")) +
+theme_bw() +
+theme(panel.grid.major.y = element_blank(), # No horizontal grid lines
+legend.position=c(1, 0.55), # Put legend inside plot area
+legend.justification=c(1, 0.5))
+# Comment: using geom_segment(aes(yend=name), xend=0, colour="grey50")
+# to replace grid line.
+```
+
+We want to change lg label in to facet_grid.
+
+```{r}
+ggplot(tophit, aes(x=avg, y=name)) +
+geom_segment(aes(yend=name), xend=0, colour="grey50") +
+geom_point(size=3, aes(colour=lg)) +
+scale_colour_brewer(palette="Set1", limits=c("NL","AL"), guide=FALSE) +
+theme_bw() +
+theme(panel.grid.major.y = element_blank()) +
+facet_grid(lg ~ ., scales="free_y", space="free_y")
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
